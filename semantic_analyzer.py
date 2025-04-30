@@ -23,10 +23,11 @@ class SemanticAnalyzer:
             self.analyze(node.value)
 
         elif isinstance(node, BinaryOp):
-            self.analyze(node.left)
-            self.analyze(node.right)
+            self.analyze(node.left) # Analisar o lado esquerdo da operação binária
+            self.analyze(node.right) # Analisar o lado direito da operação binária
 
         elif isinstance(node, Number):
+            # return "int" #retornar o tipo do número
             pass  # Nada a verificar
 
         elif isinstance(node, Identifier):
