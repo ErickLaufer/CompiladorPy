@@ -41,7 +41,7 @@ class SemanticAnalyzer:
             if not symbol:
                 raise Exception(f"Erro semântico: variável '{node.name}' usada sem declaração.")
             return symbol.type
-            
+
         elif isinstance(node, Float):
             return "float"
         
@@ -49,7 +49,7 @@ class SemanticAnalyzer:
             return "string"
         
         elif isinstance(node, Boolean):
-            return "bool"
+            return "boolean"
             
         else:
             raise Exception(f"Erro semântico: nó desconhecido {type(node)}")

@@ -10,9 +10,13 @@ float y = 3.14;
 string nome = "João";
 boolean ativo = true;
 
-x = x + 5;
+x = 1 + 5 + x + nome;
 y = y + 0.01;
+
     """
+
+# REALIZAR TESTE DE FUNÇÃO COM VALIDAÇÔES DE PARAMETROS E RETORNOS 
+# RESOLVER EXPRESSAO ARITMETICA COM ()
 
     print(">>> Código Fonte:")
     print(codigo_fonte)
