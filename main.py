@@ -5,9 +5,13 @@ from semantic_analyzer import SemanticAnalyzer
 
 def main():
     codigo_fonte = """
-    int x = 10;
-    x = x + 5;
-    y = x + 1;
+int x = 10;
+float y = 3.14;
+string nome = "João";
+boolean ativo = true;
+
+x = x + 5;
+y = y + 0.01;
     """
 
     print(">>> Código Fonte:")

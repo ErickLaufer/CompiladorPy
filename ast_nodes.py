@@ -31,3 +31,16 @@ class Number(Node):
 class Identifier(Node):
     def __init__(self, name):
         self.name = name
+
+class Float(Node):
+    def __init__(self, value):
+        self.value = float(value)
+
+class String(Node):
+    def __init__(self, value):
+            self.value = value.strip('"')
+
+class Boolean(Node):
+    def __init__(self, value):
+        self.value = value == "true"
+

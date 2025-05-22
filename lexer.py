@@ -2,7 +2,10 @@ import re
 
 # Tokens possíveis
 TOKEN_SPEC = [
+    ("FLOAT",      r'\d+\.\d+'),
     ("NUMBER",     r'\d+'),
+    ("STRING",     r'"[^"]*"'),
+    ("BOOL",       r'\b(true|false)\b'),
     ("ID",         r'[a-zA-Z_][a-zA-Z_0-9]*'),
     ("ASSIGN",     r'='),
     ("SEMI",       r';'),
@@ -23,6 +26,7 @@ TOKEN_SPEC = [
     ("WHITESPACE", r'[ \t\n]+'),
     ("UNKNOWN",    r'.'),
 ]
+
 
 TOKEN_REGEX = '|'.join(f'(?P<{name}>{pattern})' for name, pattern in TOKEN_SPEC)
 

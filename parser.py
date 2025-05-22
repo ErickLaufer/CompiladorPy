@@ -24,22 +24,27 @@ class Parser:
     def statement(self):
         token_type, value = self.current()
 
-        if token_type == 'ID' and value == 'int':
+        if token_type == 'ID' and value in ('int', 'float', 'string', 'boolean'):
             return self.var_decl()
         elif token_type == 'ID':
             return self.assignment()
         else:
             raise SyntaxError(f"Comando inválido: {token_type}")
 
+
     def var_decl(self):
-        self.eat('ID')  # tipo (ex: int)
-        var_type = 'int'  # por enquanto, fixo
+        tipo_token = self.current()
+        self.eat('ID')  # tipo (ex: int, float, string, boolean)
+        var_type = tipo_token[1]  # 'int', 'float', 'string', 'boolean'
+
         identifier = self.current()[1]
         self.eat('ID')
+
         self.eat('ASSIGN')
         value = self.expression()
         self.eat('SEMI')
         return VarDecl(var_type, identifier, value)
+
 
     def assignment(self):
         identifier = self.current()[1]
@@ -60,11 +65,26 @@ class Parser:
 
     def term(self):
         token_type, value = self.current()
+
         if token_type == 'NUMBER':
             self.eat('NUMBER')
             return Number(value)
+
+        elif token_type == 'FLOAT':
+            self.eat('FLOAT')
+            return Float(value)
+
+        elif token_type == 'STRING':
+            self.eat('STRING')
+            return String(value)
+
+        elif token_type == 'BOOL':
+            self.eat('BOOL')
+            return Boolean(value)
+
         elif token_type == 'ID':
             self.eat('ID')
             return Identifier(value)
         else:
             raise SyntaxError(f"Expressão inválida com token: {token_type}")
+# Testando o parser
