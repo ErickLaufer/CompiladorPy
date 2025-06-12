@@ -7,6 +7,22 @@ class Program(Node):
     def __init__(self, statements):
         self.statements = statements
 
+class FunctionDecl(Node):
+    def __init__(self, name, parameters, body, return_type):
+        self.name = name
+        self.parameters = parameters  # lista de (nome, tipo)
+        self.body = body              # lista de statements
+        self.return_type = return_type
+
+class FunctionCall(Node):
+    def __init__(self, name, arguments):
+        self.name = name
+        self.arguments = arguments
+
+class Return(Node):
+    def __init__(self, value):
+        self.value = value
+
 class VarDecl(Node):
     def __init__(self, var_type, identifier, value):
         self.var_type = var_type

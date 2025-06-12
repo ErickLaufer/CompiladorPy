@@ -2,22 +2,23 @@ from lexer import lexer
 from parser import Parser
 from utils import print_ast
 from semantic_analyzer import SemanticAnalyzer
+from tac_generator import TACGenerator
+from assembly_generator import AssemblyGenerator   
+
 
 def main():
     codigo_fonte = """
-int x = 10;
-float y = 3.14;
-string nome = "João";
-boolean ativo = true;
+function int soma(int a, int b) {
+    return a + b;
+}
 
-x = 1 + 5 + x + nome;
-y = y + 0.01;
+int resultado = soma(3, 4);
 
     """
 
 # REALIZAR TESTE DE FUNÇÃO COM VALIDAÇÔES DE PARAMETROS E RETORNOS 
 # RESOLVER EXPRESSAO ARITMETICA COM ()
-
+    
     print(">>> Código Fonte:")
     print(codigo_fonte)
 
@@ -40,6 +41,14 @@ y = y + 0.01;
 
     except Exception as e:
         print(f"❌ {e}")
+
+    print("\n>>> Código TAC:")
+    tac = TACGenerator()
+    tac.generate(ast)
+    print(tac.dump())
+    print("\n>>> Código Assembly:")
+    asm = AssemblyGenerator(tac.dump())
+    print(asm.generate())
 
 if __name__ == "__main__":
     main()

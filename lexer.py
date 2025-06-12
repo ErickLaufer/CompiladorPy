@@ -2,6 +2,9 @@ import re
 
 # Tokens possíveis
 TOKEN_SPEC = [
+    ("COMMA",       r','),
+    ("RETURN",      r'\breturn\b'),
+    ("FUNCTION",    r'\bfunction\b'),
     ("FLOAT",      r'\d+\.\d+'),
     ("NUMBER",     r'\d+'),
     ("STRING",     r'"[^"]*"'),
