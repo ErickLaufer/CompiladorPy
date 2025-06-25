@@ -32,4 +32,10 @@ class SymbolTable:
         for scope in reversed(self.scopes):
             if name in scope:
                 return scope[name]
-        return None  # não encontrado
+    def push_scope(self):
+        self.enter_scope()
+
+    def pop_scope(self):
+        self.exit_scope()
+    
+        return None  # não encontrado 

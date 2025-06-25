@@ -4,6 +4,7 @@ from utils import print_ast
 from semantic_analyzer import SemanticAnalyzer
 from tac_generator import TACGenerator
 from assembly_generator import AssemblyGenerator   
+from riscv_generator import RiscVGenerator
 
 
 def main():
@@ -50,5 +51,11 @@ int resultado = soma(3, 4);
     asm = AssemblyGenerator(tac.dump())
     print(asm.generate())
 
+    print("\n>>> Código RISC-V:")
+    riscv = RiscVGenerator(tac.dump())
+    print(riscv.generate())
+
 if __name__ == "__main__":
     main()
+
+

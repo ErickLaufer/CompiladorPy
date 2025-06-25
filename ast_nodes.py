@@ -59,4 +59,10 @@ class String(Node):
 class Boolean(Node):
     def __init__(self, value):
         self.value = value == "true"
+        
+class IfStatement(Node):
+    def __init__(self, condition, true_block, false_block=None):
+        self.condition = condition
+        self.true_block = true_block      # Lista de nós (statements) no bloco "if"
+        self.false_block = false_block
 

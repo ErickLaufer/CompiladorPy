@@ -33,6 +33,8 @@ class Parser:
             return self.function_decl()
         elif token_type == 'ID':
             return self.assignment()
+        elif token_type == 'IF':
+            return self.if_statement()
         else:
             raise SyntaxError(f"Comando inválido: {token_type}")
         
@@ -154,3 +156,25 @@ class Parser:
 
         self.eat('RBRACE')
         return FunctionDecl(name, parameters, body, return_type)
+    
+    def if_statement(self):
+        self.eat('IF')
+        self.eat('LPAREN')
+        condition = self.expression()
+        self.eat('RPAREN')
+
+        self.eat('LBRACE')
+        true_block = []
+        while self.current()[0] != 'RBRACE':
+            true_block.append(self.statement())
+        self.eat('RBRACE')
+
+        false_block = None
+        if self.current()[0] == 'ELSE':
+            self.eat('ELSE')
+            self.eat('LBRACE')
+            false_block = []
+        while self.current()[0] != 'RBRACE':
+            false_block.append(self.statement())
+        self.eat('RBRACE')
+        return IfStatement(condition, true_block, false_block)

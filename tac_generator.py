@@ -3,7 +3,12 @@ from ast_nodes import *
 class TACGenerator:
     def __init__(self):
         self.temp_count = 0
+        self.label_count = 0
         self.code = []
+
+    def new_label(self):
+        self.label_count += 1
+        return f"L{self.label_count}"
 
     def new_temp(self):
         self.temp_count += 1
@@ -59,9 +64,33 @@ class TACGenerator:
             for stmt in node.body:
                 self.generate(stmt)
             self.code.append("end")
+            
+        elif isinstance(node, IfStatement):
+            cond = self.generate(node.condition)
+            l_true = self.new_label()
+            l_false = self.new_label() if node.false_block else None
+            l_end = self.new_label()
 
+            self.code.append(f"if {cond} goto {l_true}")
+            if l_false:
+                self.code.append(f"goto {l_false}")
+            else:
+                self.code.append(f"goto {l_end}")
+
+            self.code.append(f"{l_true}:")
+            for stmt in node.true_block:
+                self.generate(stmt)
+            self.code.append(f"goto {l_end}")
+
+            if node.false_block:
+                self.code.append(f"{l_false}:")
+                for stmt in node.false_block:
+                    self.generate(stmt)
+
+            self.code.append(f"{l_end}:")
         else:
             raise Exception(f"Nó desconhecido: {type(node)}")
 
     def dump(self):
         return "\n".join(self.code)
+    
