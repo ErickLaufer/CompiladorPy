@@ -7,7 +7,6 @@ class RiscVGenerator:
         self.register_map = {}
         self.reg_count = 0
         self.vars = set()
-        self.in_function = False
 
     def new_reg(self, var):
         if var not in self.register_map:
@@ -30,34 +29,16 @@ class RiscVGenerator:
             if not line:
                 continue
 
-            if line.startswith("func"):
-                func_name = re.findall(r"func (\w+)", line)[0]
-                self.asm.append(f"\n{func_name}:")
-                self.in_function = True
-                continue
-
-            if line == "end":
-                if self.in_function:
-                    self.asm.append("    jr ra")
-                    self.in_function = False
-                continue
-
             if re.match(r'^L\d+:$', line):
                 self.asm.append(line)
                 continue
 
-            if line.startswith("return "):
-                value = line.replace("return ", "").strip()
-                if value.isdigit():
-                    self.asm.append(f"    li a0, {value}")
-                else:
-                    self.asm.append(f"    lw a0, {value}")
-                continue
-
             if line.startswith("if "):
-                cond_var, label = re.findall(r"if (\w+) goto (\w+)", line)[0]
-                self.asm.append(f"    lw t6, {cond_var}")
-                self.asm.append(f"    bne t6, zero, {label}")
+                cond_var = re.findall(r"if (t\d+) goto (L\d+)", line)[0]
+                reg = self.new_reg(cond_var[0])
+                self.asm.append(f"    la t6, {cond_var[0]}")
+                self.asm.append(f"    lw t6, 0(t6)")
+                self.asm.append(f"    bne t6, zero, {cond_var[1]}")
                 continue
 
             if line.startswith("goto "):
@@ -68,23 +49,26 @@ class RiscVGenerator:
             if "=" in line:
                 dest, expr = map(str.strip, line.split("=", 1))
 
-                # chamada de função
-                match_call = re.match(r'call (\w+)\((.*)\)', expr)
-                if match_call:
-                    func_name, args = match_call.groups()
-                    args = [arg.strip() for arg in args.split(",")]
+                if expr.startswith("call"):
+                    call_match = re.match(r"call (\w+)\((.*)\)", expr)
+                    func_name = call_match.group(1)
+                    args = [arg.strip() for arg in call_match.group(2).split(",") if arg.strip()]
+
                     for i, arg in enumerate(args):
                         if arg.isdigit():
                             self.asm.append(f"    li a{i}, {arg}")
                         else:
-                            self.asm.append(f"    lw a{i}, {arg}")
+                            self.asm.append(f"    la t6, {arg}")
+                            self.asm.append(f"    lw a{i}, 0(t6)")
+
                     self.asm.append(f"    jal {func_name}")
-                    self.asm.append(f"    sw a0, {dest}")
+                    self.asm.append(f"    la t6, {dest}")
+                    self.asm.append(f"    sw a0, 0(t6)")
                     continue
 
-                # expressão binária
                 if any(op in expr for op in ["+", "-", "*", "/", ">", "<", ">=", "<=", "==", "!="]):
-                    a, op, b = expr.split()
+                    tokens = expr.split()
+                    a, op, b = tokens[0], tokens[1], tokens[2]
                     ra = self.new_reg(a)
                     rb = self.new_reg(b)
                     rd = self.new_reg(dest)
@@ -92,11 +76,14 @@ class RiscVGenerator:
                     if a.isdigit():
                         self.asm.append(f"    li {ra}, {a}")
                     else:
-                        self.asm.append(f"    lw {ra}, {a}")
+                        self.asm.append(f"    la t6, {a}")
+                        self.asm.append(f"    lw {ra}, 0(t6)")
+
                     if b.isdigit():
                         self.asm.append(f"    li {rb}, {b}")
                     else:
-                        self.asm.append(f"    lw {rb}, {b}")
+                        self.asm.append(f"    la t6, {b}")
+                        self.asm.append(f"    lw {rb}, 0(t6)")
 
                     instr_map = {
                         '+': 'add',
@@ -105,26 +92,30 @@ class RiscVGenerator:
                         '/': 'div',
                         '>': 'sgt',
                         '<': 'slt',
-                        '>=': 'bge',  # cuidado: instruções booleanas podem mudar a lógica
-                        '<=': 'ble',
-                        '==': 'beq',
-                        '!=': 'bne'
+                        '>=': 'sge',
+                        '<=': 'sle',
+                        '==': 'seqz',
+                        '!=': 'snez'
                     }
 
-                    instr = instr_map.get(op, 'add')
-                    self.asm.append(f"    {instr} {rd}, {ra}, {rb}")
-                    self.asm.append(f"    sw {rd}, {dest}")
+                    instr = instr_map.get(op)
+                    if instr:
+                        self.asm.append(f"    {instr} {rd}, {ra}, {rb}")
+                        self.asm.append(f"    la t6, {dest}")
+                        self.asm.append(f"    sw {rd}, 0(t6)")
                     continue
 
-                # atribuição direta
-                if expr.isdigit():
+                elif expr.isdigit():
                     reg = self.new_reg(dest)
                     self.asm.append(f"    li {reg}, {expr}")
-                    self.asm.append(f"    sw {reg}, {dest}")
+                    self.asm.append(f"    la t6, {dest}")
+                    self.asm.append(f"    sw {reg}, 0(t6)")
                 else:
-                    reg = self.new_reg(expr)
-                    self.asm.append(f"    lw {reg}, {expr}")
-                    self.asm.append(f"    sw {reg}, {dest}")
+                    src_reg = self.new_reg(expr)
+                    self.asm.append(f"    la t6, {expr}")
+                    self.asm.append(f"    lw {src_reg}, 0(t6)")
+                    self.asm.append(f"    la t6, {dest}")
+                    self.asm.append(f"    sw {src_reg}, 0(t6)")
 
         self.asm.append("    li a7, 10")
         self.asm.append("    ecall")
@@ -132,6 +123,12 @@ class RiscVGenerator:
 
     def _collect_vars(self):
         for line in self.tac_code:
-            if "=" in line and not line.startswith("t") and not line.startswith("call"):
+            if "=" in line and not line.strip().startswith("t") and not line.strip().startswith("if"):
                 var = line.split("=")[0].strip()
                 self.vars.add(var)
+
+        # incluir temporários
+        for line in self.tac_code:
+            matches = re.findall(r"\bt\d+\b", line)
+            for match in matches:
+                self.vars.add(match)
